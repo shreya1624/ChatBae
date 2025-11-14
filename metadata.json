@@ -1,0 +1,7 @@
+{
+  "name": "ChatBae",
+  "description": "A new-age AI dating coach that acts like a friend, guiding users through the complexities of dating. It features a special 'Gen Z' mode for more relatable, slang-filled advice.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
