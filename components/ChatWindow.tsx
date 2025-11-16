@@ -8,6 +8,7 @@ interface ChatWindowProps {
   isLoading: boolean;
   onSendMessage: (message: string) => void;
   onEditMessage: (messageIndex: number, newContent: string) => void;
+  onCopyMessage: (text: string) => void;
   isGenZMode: boolean;
   userProfile: UserProfile;
 }
@@ -87,9 +88,9 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onPromptClick, isGenZMode
   );
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendMessage, onEditMessage, isGenZMode, userProfile }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendMessage, onEditMessage, onCopyMessage, isGenZMode, userProfile }) => {
   const [input, setInput] = useState('');
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const textBeforeRecordingRef = useRef('');
@@ -135,15 +136,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
     };
   }, []);
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+  
   useEffect(() => {
     scrollToBottom();
   }, [chat?.messages, isLoading]);
-
-  const scrollToBottom = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,9 +170,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
     }
   };
 
+  const lastUserMessageIndex = chat ? chat.messages.map(m => m.role).lastIndexOf('user') : -1;
+
   return (
     <div className="flex flex-col h-full bg-gray-900">
-      <div ref={scrollContainerRef} className="flex-grow overflow-y-auto p-6 space-y-6 chat-scroll-container">
+      <div className="flex-grow overflow-y-auto p-6 space-y-6 chat-scroll-container">
         {chat ? (
           <>
             {chat.messages.map((msg, index) => (
@@ -190,8 +191,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
                 }}
                 isLoading={isLoading && index === chat.messages.length - 1}
                 userProfile={userProfile}
+                isLastUserMessage={index === lastUserMessageIndex}
+                onRegenerate={() => onEditMessage(index, msg.content)}
+                onCopyMessage={() => onCopyMessage(msg.content)}
               />
             ))}
+            <div ref={messagesEndRef} />
           </>
         ) : (
           <WelcomeScreen onPromptClick={handlePromptClick} isGenZMode={isGenZMode} />

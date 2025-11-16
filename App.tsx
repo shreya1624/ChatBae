@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header, Toast } from './components/Header';
@@ -317,6 +316,11 @@ const App: React.FC = () => {
     showToast('Copied to clipboard!');
   };
 
+  const handleCopyMessage = (text: string) => {
+    navigator.clipboard.writeText(text);
+    showToast('Message copied!');
+  };
+
   const handleDownloadAsTxt = () => {
     if (!activeChat) return;
     const text = activeChat.messages.map(m => `${m.role === 'user' ? userProfile.name : 'ChatBae'}: ${m.content}`).join('\n\n');
@@ -345,9 +349,11 @@ const App: React.FC = () => {
   };
 
   const handleSaveProfile = (newProfile: UserProfile) => {
-    setUserProfile(newProfile);
+    if (newProfile.name !== userProfile.name || newProfile.iconId !== userProfile.iconId) {
+      setUserProfile(newProfile);
+      showToast("Profile saved!");
+    }
     setIsProfileModalOpen(false);
-    showToast("Profile saved!");
   };
 
   return (
@@ -378,7 +384,6 @@ const App: React.FC = () => {
             <Header
                 isGenZMode={isGenZMode}
                 onToggleGenZMode={() => setIsGenZMode(prev => !prev)}
-                activeChatTitle={activeChat?.title || 'ChatBae'}
                 searchTerm={searchTerm}
                 onSearchChange={setSearchTerm}
                 activeChatId={activeChatId}
@@ -395,6 +400,7 @@ const App: React.FC = () => {
                     isLoading={isLoading}
                     onSendMessage={handleSendMessage}
                     onEditMessage={handleEditMessage}
+                    onCopyMessage={handleCopyMessage}
                     isGenZMode={isGenZMode}
                     userProfile={userProfile}
                 />

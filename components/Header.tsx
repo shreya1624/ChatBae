@@ -122,7 +122,6 @@ export const Toast: React.FC<{ message: string }> = ({ message }) => (
 interface HeaderProps {
   isGenZMode: boolean;
   onToggleGenZMode: () => void;
-  activeChatTitle: string;
   searchTerm: string;
   onSearchChange: (term: string) => void;
   activeChatId: string | null;
@@ -137,7 +136,6 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ 
     isGenZMode, 
     onToggleGenZMode, 
-    activeChatTitle, 
     searchTerm, 
     onSearchChange, 
     activeChatId, 
@@ -166,6 +164,24 @@ export const Header: React.FC<HeaderProps> = ({
     action();
     setIsShareMenuOpen(false);
   };
+  
+  const summaryTooltip = chatSummary.isLoading
+    ? "Generating summary..."
+    : chatSummary.text
+      ? `Summary: ${chatSummary.text}`
+      : "Generate a one-sentence AI summary of this conversation";
+
+  const summaryIconContent = chatSummary.isLoading ? (
+    <div className="w-4 h-4 flex items-center justify-center">
+        <div className="dot-bounce flex space-x-0.5">
+            <div className="w-1 h-1 bg-pink-400 rounded-full dot-1"></div>
+            <div className="w-1 h-1 bg-pink-400 rounded-full dot-2"></div>
+            <div className="w-1 h-1 bg-pink-400 rounded-full dot-3"></div>
+        </div>
+    </div>
+  ) : (
+      <SparklesIcon className="w-4 h-4" />
+  );
 
   return (
     <>
@@ -194,16 +210,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </h1>
             </div>
             <div className="flex items-center gap-2 group min-w-0">
-                <h2 className="text-lg font-semibold text-gray-300 truncate">{activeChatTitle}</h2>
                 {activeChatId && (
                     <button
                         onClick={onGenerateSummary}
-                        disabled={chatSummary.isLoading || !!chatSummary.text}
-                        className="p-1 rounded-full text-gray-500 hover:bg-gray-700 hover:text-white transition-opacity flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed group-hover:opacity-100"
-                        aria-label="Get a quick summary of this chat"
-                        title="Get a quick summary of this chat"
+                        disabled={chatSummary.isLoading}
+                        className={`p-1 rounded-full hover:bg-gray-700 transition-colors flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed ${
+                          chatSummary.text ? 'text-pink-400 hover:text-pink-300' : 'text-gray-500 hover:text-white'
+                        }`}
+                        aria-label={summaryTooltip}
+                        title={summaryTooltip}
                     >
-                        <SparklesIcon className="w-4 h-4" />
+                        {summaryIconContent}
                     </button>
                 )}
             </div>
@@ -273,26 +290,6 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             </div>
         </div>
-        {(chatSummary.isLoading || chatSummary.text) && (
-          <div className="px-4 pb-3">
-            <div className="pl-[5.5rem] sm:pl-[12.5rem]">
-              {chatSummary.isLoading ? (
-                <p className="text-sm text-gray-400 italic flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4 text-pink-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>Generating summary...</span>
-                </p>
-              ) : (
-                <p className="text-sm text-gray-300 bg-gray-800/50 p-2 rounded-md border border-gray-700/50 flex items-start gap-2">
-                  <SparklesIcon className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
-                  <span>{chatSummary.text}</span>
-                </p>
-              )}
-            </div>
-          </div>
-        )}
       </div>
       {isHelpModalOpen && <HowToUseModal onClose={() => setIsHelpModalOpen(false)} />}
     </>

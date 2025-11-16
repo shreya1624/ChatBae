@@ -85,10 +85,10 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserP
                         <button
                             key={iconId}
                             onClick={() => setSelectedIconId(iconId)}
-                            className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center ${
+                            className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center transform focus:outline-none ${
                                 selectedIconId === iconId 
-                                ? 'bg-pink-600/50 ring-2 ring-pink-400 ring-offset-2 ring-offset-gray-800' 
-                                : 'bg-gray-700 hover:bg-gray-600'
+                                ? 'bg-pink-600/50 ring-2 ring-pink-400 ring-offset-2 ring-offset-gray-800 scale-110' 
+                                : 'bg-gray-700 hover:bg-gray-600 hover:scale-105 focus:ring-2 focus:ring-pink-500'
                             }`}
                             aria-label={`Select avatar ${iconId}`}
                         >

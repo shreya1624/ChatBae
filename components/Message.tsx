@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Message, UserProfile } from '../types';
-import { UserAvatar, BotIcon, EditIcon } from './Icons';
+import { UserAvatar, BotIcon, EditIcon, CopyIcon, RegenerateIcon } from './Icons';
 
 interface MessageProps {
   message: Message;
@@ -11,6 +11,9 @@ interface MessageProps {
   onCancelEditing: () => void;
   isLoading?: boolean;
   userProfile: UserProfile;
+  isLastUserMessage: boolean;
+  onRegenerate: () => void;
+  onCopyMessage: () => void;
 }
 
 const formatTimestamp = (timestamp: number): string => {
@@ -46,7 +49,7 @@ const formatTimestamp = (timestamp: number): string => {
   return messageDate.toLocaleDateString('en-US');
 };
 
-export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isEditing, onStartEditing, onSaveEdit, onCancelEditing, isLoading, userProfile }) => {
+export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isEditing, onStartEditing, onSaveEdit, onCancelEditing, isLoading, userProfile, isLastUserMessage, onRegenerate, onCopyMessage }) => {
   const isUser = message.role === 'user';
   const [editedContent, setEditedContent] = useState(message.content);
 
@@ -139,13 +142,36 @@ export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isE
                 </time>
             )}
             {isUser && (
-                <button
-                    onClick={() => onStartEditing(messageIndex)}
-                    className="p-1 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 hover:bg-gray-700 hover:text-white transition-opacity"
-                    aria-label="Edit message"
-                >
-                    <EditIcon className="w-4 h-4" />
-                </button>
+                <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {isLastUserMessage && (
+                        <>
+                            <button
+                                onClick={onCopyMessage}
+                                className="p-1 rounded-full text-gray-500 hover:bg-gray-700 hover:text-white"
+                                aria-label="Copy message"
+                                title="Copy message"
+                            >
+                                <CopyIcon className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={onRegenerate}
+                                className="p-1 rounded-full text-gray-500 hover:bg-gray-700 hover:text-white"
+                                aria-label="Regenerate response"
+                                title="Regenerate response"
+                            >
+                                <RegenerateIcon className="w-4 h-4" />
+                            </button>
+                        </>
+                    )}
+                    <button
+                        onClick={() => onStartEditing(messageIndex)}
+                        className="p-1 rounded-full text-gray-500 hover:bg-gray-700 hover:text-white"
+                        aria-label="Edit message"
+                        title="Edit message"
+                    >
+                        <EditIcon className="w-4 h-4" />
+                    </button>
+                </div>
             )}
         </div>
       </div>
