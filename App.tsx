@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Header, Toast } from './components/Header';
@@ -28,484 +29,386 @@ const levenshtein = (a: string, b: string): number => {
   return matrix[an][bn];
 };
 
+type SortOrder = 'recent' | 'alphabetical';
+
 const App: React.FC = () => {
   const [chats, setChats] = useState<Chat[]>(() => {
     try {
       const savedChats = localStorage.getItem('chatbae-chats');
-      if (savedChats) {
-        return JSON.parse(savedChats);
-      }
-      return [];
+      return savedChats ? JSON.parse(savedChats) : [];
     } catch (error) {
       console.error("Failed to load chats from local storage:", error);
       return [];
     }
   });
 
-  const [activeChatId, setActiveChatId] = useState<string | null>(() => {
-    const savedActiveId = localStorage.getItem('chatbae-active-id');
-    // Ensure the active chat actually exists
-    if (savedActiveId) {
-      const parsedId = JSON.parse(savedActiveId);
-      const allChats = chats || JSON.parse(localStorage.getItem('chatbae-chats') || '[]');
-      if (allChats.some((chat: Chat) => chat.id === parsedId)) {
-        return parsedId;
-      }
-    }
-    return chats.length > 0 ? chats[0].id : null;
-  });
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
   
-  const [isGenZMode, setIsGenZMode] = useState<boolean>(false);
+  const [isGenZMode, setIsGenZMode] = useState<boolean>(() => {
+    const savedMode = localStorage.getItem('chatbae-genz-mode');
+    return savedMode ? JSON.parse(savedMode) : false;
+  });
+
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [chatSummary, setChatSummary] = useState<{ text: string | null; isLoading: boolean }>({ text: null, isLoading: false });
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
-
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     try {
-      const savedProfile = localStorage.getItem('chatbae-profile');
-      if (savedProfile) {
-        return JSON.parse(savedProfile);
-      }
+      const savedProfile = localStorage.getItem('chatbae-user-profile');
+      return savedProfile ? JSON.parse(savedProfile) : { name: 'You', iconId: 'winking_heart' };
     } catch (error) {
-      console.error("Failed to load profile from local storage:", error);
+      console.error("Failed to load user profile:", error);
+      return { name: 'You', iconId: 'winking_heart' };
     }
-    return { name: 'You', iconId: 'user1' };
+  });
+  const [sortOrder, setSortOrder] = useState<SortOrder>(() => {
+    const savedSortOrder = localStorage.getItem('chatbae-sort-order');
+    return (savedSortOrder === 'alphabetical' || savedSortOrder === 'recent') ? savedSortOrder : 'recent';
   });
 
   useEffect(() => {
-    try {
-        localStorage.setItem('chatbae-profile', JSON.stringify(userProfile));
-    } catch (error) {
-        console.error("Failed to save profile to local storage:", error);
+    const savedActiveId = localStorage.getItem('chatbae-active-id');
+    if (savedActiveId && chats.some(c => c.id === JSON.parse(savedActiveId))) {
+      setActiveChatId(JSON.parse(savedActiveId));
+    } else if (chats.length > 0) {
+      // Find the most recent chat to set as active
+      const sortedChats = [...chats].sort((a, b) => {
+        const lastMsgA = a.messages[a.messages.length - 1]?.timestamp || 0;
+        const lastMsgB = b.messages[b.messages.length - 1]?.timestamp || 0;
+        return lastMsgB - lastMsgA;
+      });
+      setActiveChatId(sortedChats[0].id);
+    } else {
+      setActiveChatId(null);
     }
-  }, [userProfile]);
-
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 768px)');
-    const handleResize = () => setIsSidebarVisible(mediaQuery.matches);
-    handleResize(); // Set initial state based on screen size
-    mediaQuery.addEventListener('change', handleResize);
-    return () => mediaQuery.removeEventListener('change', handleResize);
-  }, []);
+  }, []); // Run only once on initial load
 
   useEffect(() => {
-    // Save chats and active ID to local storage whenever they change
-    try {
-      if(chats.length > 0){
-        localStorage.setItem('chatbae-chats', JSON.stringify(chats));
-        if (activeChatId) {
-            localStorage.setItem('chatbae-active-id', JSON.stringify(activeChatId));
-        } else if (chats.length > 0) {
-            // If active chat is null but chats exist, set first one as active
-            setActiveChatId(chats[0].id);
-        }
-      } else {
-        localStorage.removeItem('chatbae-chats');
+    localStorage.setItem('chatbae-chats', JSON.stringify(chats));
+  }, [chats]);
+
+  useEffect(() => {
+    if (activeChatId) {
+      localStorage.setItem('chatbae-active-id', JSON.stringify(activeChatId));
+    } else {
         localStorage.removeItem('chatbae-active-id');
-      }
-    } catch (error) {
-      console.error("Failed to save state to local storage:", error);
     }
-  }, [chats, activeChatId]);
-
-  useEffect(() => {
-    if (toastMessage) {
-      const timer = setTimeout(() => {
-        setToastMessage(null);
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [toastMessage]);
-
-  useEffect(() => {
-    // Clear summary when active chat changes
-    setChatSummary({ text: null, isLoading: false });
   }, [activeChatId]);
 
-  const handleUpdateProfile = (profile: UserProfile) => {
-    setUserProfile(profile);
-    setIsProfileModalOpen(false);
-  };
+  useEffect(() => {
+    localStorage.setItem('chatbae-genz-mode', JSON.stringify(isGenZMode));
+  }, [isGenZMode]);
+
+  useEffect(() => {
+    localStorage.setItem('chatbae-user-profile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem('chatbae-sort-order', sortOrder);
+  }, [sortOrder]);
+
+  const activeChat = useMemo(() => chats.find(chat => chat.id === activeChatId), [chats, activeChatId]);
+
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 3000);
+  }, []);
 
   const handleNewChat = () => {
-    const newChatId = Date.now().toString();
-    const newChat: Chat = {
-      id: newChatId,
-      title: 'New Chat',
-      messages: [],
-    };
-    setChats(prev => [newChat, ...prev]);
-    setActiveChatId(newChatId);
-    if (window.innerWidth < 768) {
-      setIsSidebarVisible(false);
-    }
+    setActiveChatId(null);
+    setChatSummary({ text: null, isLoading: false });
   };
 
   const handleSelectChat = (id: string) => {
     setActiveChatId(id);
-    if (window.innerWidth < 768) {
-      setIsSidebarVisible(false);
-    }
+    setChatSummary({ text: null, isLoading: false });
   };
 
-  const handleUpdateChatTitle = (chatId: string, newTitle: string) => {
-    if (!newTitle.trim()) return; // Prevent empty titles
-    setChats(prevChats =>
-      prevChats.map(chat =>
-        chat.id === chatId ? { ...chat, title: newTitle.trim() } : chat
-      )
-    );
+  const handleUpdateChatTitle = (id: string, newTitle: string) => {
+    setChats(prev => prev.map(chat => chat.id === id ? { ...chat, title: newTitle } : chat));
+    showToast("Chat renamed successfully!");
   };
 
-  const handleDeleteChat = (chatId: string) => {
-    if (window.confirm("Are you sure you want to delete this chat? This action cannot be undone.")) {
-      setChats(prevChats => {
-        const newChats = prevChats.filter(chat => chat.id !== chatId);
-        if (activeChatId === chatId) {
-          // If the active chat is deleted, set the new active chat
-          if (newChats.length > 0) {
-            // Try to find a pinned chat first, then default to the first chat
-            const firstPinned = newChats.find(c => c.isPinned);
-            setActiveChatId(firstPinned ? firstPinned.id : newChats[0].id);
-          } else {
-            setActiveChatId(null);
+  const handleDeleteChat = (id: string) => {
+    setChats(prev => {
+      const newChats = prev.filter(chat => chat.id !== id);
+      if (activeChatId === id) {
+        setActiveChatId(newChats.length > 0 ? newChats[0].id : null);
+      }
+      return newChats;
+    });
+    showToast("Chat deleted.");
+  };
+
+  const handleTogglePinChat = (id: string) => {
+    setChats(prev => prev.map(chat => chat.id === id ? { ...chat, isPinned: !chat.isPinned } : chat));
+    const chat = chats.find(c => c.id === id);
+    showToast(chat?.isPinned ? "Chat unpinned." : "Chat pinned.");
+  };
+  
+  const handleSendMessage = async (messageContent: string) => {
+      if (isLoading) return;
+
+      const userMessage: Message = { role: 'user', content: messageContent, timestamp: Date.now() };
+      let currentChatId = activeChatId;
+      let newChatCreated = false;
+
+      // Create a new chat if there's no active one
+      if (!currentChatId) {
+          const newChat: Chat = {
+              id: `chat-${Date.now()}`,
+              title: "New Chat",
+              messages: [userMessage],
+          };
+          setChats(prev => [newChat, ...prev]);
+          setActiveChatId(newChat.id);
+          currentChatId = newChat.id;
+          newChatCreated = true;
+      } else {
+          setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, messages: [...c.messages, userMessage] } : c));
+      }
+      
+      setIsLoading(true);
+
+      try {
+          const chatHistory = chats.find(c => c.id === currentChatId)?.messages.slice(0, -1) || [];
+          const stream = await getChatResponseStream(chatHistory, messageContent, isGenZMode);
+          
+          let fullResponse = '';
+          const modelMessage: Message = { role: 'model', content: '', timestamp: Date.now() };
+          
+          // Add the empty model message to start
+          setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, messages: [...c.messages, modelMessage] } : c));
+
+          for await (const chunk of stream) {
+              fullResponse += chunk.text;
+              setChats(prev => prev.map(c => {
+                  if (c.id === currentChatId) {
+                      const updatedMessages = c.messages.slice();
+                      updatedMessages[updatedMessages.length - 1] = { ...modelMessage, content: fullResponse };
+                      return { ...c, messages: updatedMessages };
+                  }
+                  return c;
+              }));
           }
-        }
-        return newChats;
-      });
-    }
+          
+          if (newChatCreated) {
+            const finalMessages = [userMessage, { ...modelMessage, content: fullResponse }];
+            const newTitle = await getTitleForChat(finalMessages);
+            setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, title: newTitle } : c));
+          }
+
+      } catch (error) {
+          console.error("Error sending message:", error);
+          const errorMessage: Message = { role: 'model', content: 'Sorry, I encountered an error. Please try again.', timestamp: Date.now() };
+          setChats(prev => prev.map(c => c.id === currentChatId ? { ...c, messages: [...c.messages, errorMessage] } : c));
+      } finally {
+          setIsLoading(false);
+      }
   };
 
-  const handleTogglePinChat = (chatId: string) => {
-    setChats(prevChats =>
-      prevChats.map(chat =>
-        chat.id === chatId ? { ...chat, isPinned: !chat.isPinned } : chat
-      )
-    );
-  };
+  const handleEditMessage = async (messageIndex: number, newContent: string) => {
+    if (!activeChatId) return;
 
-  const streamAndSetResponse = async (chatId: string, history: Message[], newMessage: string) => {
+    // We resend the conversation up to the point of the edit
+    const truncatedMessages = activeChat?.messages.slice(0, messageIndex) || [];
+    const editedUserMessage: Message = { role: 'user', content: newContent, timestamp: Date.now() };
+
+    setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...truncatedMessages, editedUserMessage] } : c));
+    setIsLoading(true);
+
     try {
-        const stream = await getChatResponseStream(history, newMessage, isGenZMode);
+        const stream = await getChatResponseStream(truncatedMessages, newContent, isGenZMode);
+        
+        let fullResponse = '';
+        const modelMessage: Message = { role: 'model', content: '', timestamp: Date.now() };
+        
+        setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...c.messages, modelMessage] } : c));
+
         for await (const chunk of stream) {
-            const chunkText = chunk.text;
-            if (chunkText) {
-                setChats(prev => prev.map(c => {
-                    if (c.id === chatId) {
-                        const newMessages = [...c.messages];
-                        const lastMessage = newMessages[newMessages.length - 1];
-                        if (lastMessage && lastMessage.role === 'model') {
-                            lastMessage.content += chunkText;
-                        }
-                        return { ...c, messages: newMessages };
-                    }
-                    return c;
-                }));
-            }
-        }
-    } catch (error) {
-        console.error("Failed to get response from Gemini:", error);
-        const errorMessageContent = "Oops! Something went wrong. Please try again.";
-        setChats(prev => prev.map(c => {
-            if (c.id === chatId) {
-                const newMessages = [...c.messages];
-                const lastMessage = newMessages[newMessages.length - 1];
-                if (lastMessage && lastMessage.role === 'model') {
-                    lastMessage.content = errorMessageContent;
+            fullResponse += chunk.text;
+            setChats(prev => prev.map(c => {
+                if (c.id === activeChatId) {
+                    const updatedMessages = c.messages.slice();
+                    updatedMessages[updatedMessages.length - 1] = { ...modelMessage, content: fullResponse };
+                    return { ...c, messages: updatedMessages };
                 }
-                return { ...c, messages: newMessages };
-            }
-            return c;
-        }));
+                return c;
+            }));
+        }
+
+    } catch (error) {
+        console.error("Error editing message:", error);
+        const errorMessage: Message = { role: 'model', content: 'Sorry, I encountered an error processing your edit. Please try again.', timestamp: Date.now() };
+        setChats(prev => prev.map(c => c.id === activeChatId ? { ...c, messages: [...c.messages, errorMessage] } : c));
     } finally {
         setIsLoading(false);
     }
   };
 
-  const processMessage = async (chatId: string, messages: Message[], userMessageContent: string) => {
-    setIsLoading(true);
+  const filteredChats = useMemo(() => {
+    if (!searchTerm.trim()) return chats;
 
-    const modelMessagePlaceholder: Message = { role: 'model', content: '', timestamp: Date.now() };
-    setChats(prev => prev.map(c => 
-      c.id === chatId ? { ...c, messages: [...messages, modelMessagePlaceholder] } : c
-    ));
-
-    const historyForApi = messages.slice(0, -1);
-    await streamAndSetResponse(chatId, historyForApi, userMessageContent);
-
-    // After response is streamed, update title based on conversation.
-    setChats(prevChats => {
-        const chatToUpdate = prevChats.find(c => c.id === chatId);
-        // Only generate a new title if it's a new chat, or a very short one.
-        // This avoids changing titles on long-running conversations.
-        if (chatToUpdate && (chatToUpdate.title === 'New Chat' || chatToUpdate.messages.length <= 4)) {
-            getTitleForChat(chatToUpdate.messages).then(title => {
-                if (title && title !== chatToUpdate.title) {
-                    setChats(prev => prev.map(c => (c.id === chatId ? { ...c, title } : c)));
-                }
-            });
-        }
-        return prevChats;
-    });
-  };
-
-  const handleSendMessage = useCallback(async (messageContent: string) => {
-    if (!activeChatId) {
-        // If there's no active chat, create one first.
-        const newChatId = Date.now().toString();
-        const newUserMessage: Message = { role: 'user', content: messageContent, timestamp: Date.now() };
-        const newChat: Chat = {
-            id: newChatId,
-            title: 'New Chat',
-            messages: [newUserMessage]
-        };
-        setChats(prev => [newChat, ...prev]);
-        setActiveChatId(newChatId);
-        // Continue execution with the new chat context
-        processMessage(newChatId, [newUserMessage], messageContent);
-    } else {
-        const userMessage: Message = { role: 'user', content: messageContent, timestamp: Date.now() };
-        const updatedChats = chats.map(c => 
-            c.id === activeChatId ? { ...c, messages: [...c.messages, userMessage] } : c
-        );
-        setChats(updatedChats);
-        const currentChat = updatedChats.find(c => c.id === activeChatId);
-        if (currentChat) {
-            processMessage(activeChatId, currentChat.messages, messageContent);
-        }
-    }
-  }, [activeChatId, chats, isGenZMode]);
-
-  const handleEditMessage = async (messageIndex: number, newContent: string) => {
-    if (!activeChatId || !newContent.trim()) return;
-
-    const chatToUpdate = chats.find(c => c.id === activeChatId);
-    if (!chatToUpdate || chatToUpdate.messages[messageIndex]?.role !== 'user') {
-        console.error("Cannot edit message: not found or not a user message.");
-        return;
-    }
-
-    setIsLoading(true);
-
-    // Truncate history and update the user message
-    const historyBeforeEdit = chatToUpdate.messages.slice(0, messageIndex);
-    const updatedUserMessage: Message = { role: 'user', content: newContent.trim(), timestamp: Date.now() };
-    const modelMessagePlaceholder: Message = { role: 'model', content: '', timestamp: Date.now() };
-    const messagesForUiUpdate = [...historyBeforeEdit, updatedUserMessage, modelMessagePlaceholder];
-
-    // Update state for immediate UI feedback (removes subsequent messages)
-    setChats(prevChats =>
-      prevChats.map(chat =>
-        chat.id === activeChatId ? { ...chat, messages: messagesForUiUpdate } : chat
-      )
+    const lowercasedSearchTerm = searchTerm.toLowerCase();
+    
+    // Exact match filter
+    const exactMatches = chats.filter(chat =>
+      chat.title.toLowerCase().includes(lowercasedSearchTerm)
     );
 
-    // Resubmit to get a new model response
-    await streamAndSetResponse(activeChatId, historyBeforeEdit, newContent.trim());
+    // Fuzzy search for remaining items if few exact matches are found
+    if (exactMatches.length > 5) return exactMatches;
 
-    // After response is streamed, update title based on conversation.
-    setChats(prevChats => {
-        const chatToUpdate = prevChats.find(c => c.id === activeChatId);
-        if (chatToUpdate && (chatToUpdate.title === 'New Chat' || chatToUpdate.messages.length <= 4)) {
-            getTitleForChat(chatToUpdate.messages).then(title => {
-                if (title && title !== chatToUpdate.title) {
-                    // FIX: Replaced undefined `chatId` with `activeChatId`.
-                    setChats(prev => prev.map(c => (c.id === activeChatId ? { ...c, title } : c)));
-                }
-            });
-        }
-        return prevChats;
-    });
+    const otherChats = chats.filter(chat => !exactMatches.includes(chat));
+    const fuzzyMatches = otherChats
+      .map(chat => ({
+        chat,
+        distance: levenshtein(chat.title.toLowerCase(), lowercasedSearchTerm),
+      }))
+      .filter(item => item.distance < 4) // Adjust threshold for desired fuzziness
+      .sort((a, b) => a.distance - b.distance)
+      .map(item => item.chat);
+      
+    return [...exactMatches, ...fuzzyMatches];
+  }, [chats, searchTerm]);
+
+  const sortedChats = useMemo(() => {
+    const pinned = filteredChats.filter(c => c.isPinned);
+    const unpinned = filteredChats.filter(c => !c.isPinned);
+
+    const sortFunction = (a: Chat, b: Chat) => {
+      if (sortOrder === 'alphabetical') {
+        return a.title.localeCompare(b.title, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      // Default to 'recent'
+      const lastMsgA = a.messages[a.messages.length - 1]?.timestamp || 0;
+      const lastMsgB = b.messages[b.messages.length - 1]?.timestamp || 0;
+      return lastMsgB - lastMsgA;
+    };
+
+    pinned.sort(sortFunction);
+    unpinned.sort(sortFunction);
+
+    return [...pinned, ...unpinned];
+  }, [filteredChats, sortOrder]);
+
+  const handleShareNative = async () => {
+    if (!activeChat || !navigator.share) return;
+    const text = activeChat.messages.map(m => `${m.role === 'user' ? userProfile.name : 'ChatBae'}: ${m.content}`).join('\n\n');
+    try {
+      await navigator.share({
+        title: activeChat.title,
+        text: `A conversation with ChatBae:\n\n${text}`,
+      });
+      showToast('Shared successfully!');
+    } catch (error) {
+      console.error('Error sharing:', error);
+      showToast('Could not share conversation.');
+    }
   };
 
-  const handleGenerateSummary = async () => {
-    if (!activeChatId) return;
-    const currentChat = chats.find(c => c.id === activeChatId);
-    if (!currentChat || currentChat.messages.length === 0) {
-      setToastMessage("Not enough messages to generate a summary.");
-      return;
-    }
-
-    setChatSummary({ text: null, isLoading: true });
-    try {
-      const summaryText = await getChatSummary(currentChat.messages);
-      setChatSummary({ text: summaryText, isLoading: false });
-    } catch (error) {
-      console.error("Summary generation failed:", error);
-      setChatSummary({ text: "Failed to generate summary.", isLoading: false });
-    }
+  const handleCopyToClipboard = () => {
+    if (!activeChat) return;
+    const text = activeChat.messages.map(m => `${m.role === 'user' ? userProfile.name : 'ChatBae'}: ${m.content}`).join('\n\n');
+    navigator.clipboard.writeText(text);
+    showToast('Copied to clipboard!');
   };
 
-  const getChatTranscript = useCallback(() => {
-    const activeChat = chats.find(c => c.id === activeChatId);
-    if (!activeChat) return { transcript: '', title: '' };
-
-    const transcript = activeChat.messages
-      .map(msg => `${msg.role === 'user' ? userProfile.name : 'ChatBae'}: ${msg.content}`)
-      .join('\n\n');
-    
-    return { transcript, title: activeChat.title };
-  }, [chats, activeChatId, userProfile]);
-
-  const handleCopyToClipboard = useCallback(async () => {
-    const { transcript } = getChatTranscript();
-    if (!transcript) return;
-    try {
-      await navigator.clipboard.writeText(transcript);
-      setToastMessage('Copied to clipboard!');
-    } catch (error) {
-      console.error('Error copying to clipboard:', error);
-      setToastMessage('Failed to copy.');
-    }
-  }, [getChatTranscript]);
-  
-  const handleDownloadAsTxt = useCallback(() => {
-    // FIX: Corrected function name from get_chat_transcript to getChatTranscript.
-    const { transcript, title } = getChatTranscript();
-    if (!transcript) return;
-    const blob = new Blob([transcript], { type: 'text/plain;charset=utf-8' });
+  const handleDownloadAsTxt = () => {
+    if (!activeChat) return;
+    const text = activeChat.messages.map(m => `${m.role === 'user' ? userProfile.name : 'ChatBae'}: ${m.content}`).join('\n\n');
+    const blob = new Blob([text], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${title.replace(/ /g, '_') || 'chat'}.txt`;
-    document.body.appendChild(a);
+    a.download = `${activeChat.title.replace(/ /g, '_')}.txt`;
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    setToastMessage('Download started!');
-  }, [getChatTranscript]);
+    showToast('Download started!');
+  };
 
-  const handleShareNative = useCallback(async () => {
-    const { transcript, title } = getChatTranscript();
-    if (!transcript) return;
-
-    const shareData = {
-      title: `ChatBae: ${title}`,
-      text: `Check out my conversation with ChatBae:\n\n---\n\n${transcript}`,
-    };
-
+  const handleGenerateSummary = async () => {
+    if (!activeChat || activeChat.messages.length < 2) {
+      showToast("Not enough messages to generate a summary.");
+      return;
+    }
+    setChatSummary({ text: null, isLoading: true });
     try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareData.text);
-        setToastMessage('Sharing not supported, copied to clipboard!');
-      }
+      const summary = await getChatSummary(activeChat.messages);
+      setChatSummary({ text: summary, isLoading: false });
     } catch (error) {
-      console.error('Error sharing chat:', error);
-      // Don't show an error if the user cancelled the share dialog
-      if ((error as DOMException).name !== 'AbortError') {
-        try {
-            await navigator.clipboard.writeText(shareData.text);
-            setToastMessage('Sharing failed. Copied to clipboard instead.');
-        } catch (copyError) {
-            console.error('Error copying to clipboard:', copyError);
-            setToastMessage('Could not share or copy the chat.');
-        }
-      }
+      setChatSummary({ text: "Error generating summary.", isLoading: false });
     }
-  }, [getChatTranscript]);
+  };
 
-  const activeChat = chats.find(c => c.id === activeChatId) || null;
-  
-  const filteredAndSortedChats = useMemo(() => {
-    const sortByRecency = (a: Chat, b: Chat) => b.id.localeCompare(a.id);
-  
-    const term = searchTerm.trim().toLowerCase();
-    if (!term) {
-      const pinnedChats = chats.filter(chat => chat.isPinned).sort(sortByRecency);
-      const unpinnedChats = chats.filter(chat => !chat.isPinned).sort(sortByRecency);
-      return [...pinnedChats, ...unpinnedChats];
-    }
-    
-    const fuzzyFilter = (chat: Chat) => {
-      const title = chat.title.toLowerCase();
-      if (title.includes(term)) {
-        return true;
-      }
-      const distance = levenshtein(title, term);
-      return distance <= 3 || distance < title.length / 2;
-    };
-
-    const filtered = chats.filter(fuzzyFilter);
-
-    return filtered.sort((a, b) => {
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      return b.id.localeCompare(a.id);
-    });
-  }, [chats, searchTerm]);
+  const handleSaveProfile = (newProfile: UserProfile) => {
+    setUserProfile(newProfile);
+    setIsProfileModalOpen(false);
+    showToast("Profile saved!");
+  };
 
   return (
-    <>
-        <div className="flex h-screen w-screen overflow-hidden">
-        {isSidebarVisible && (
-            <div 
-                onClick={() => setIsSidebarVisible(false)} 
-                className="fixed inset-0 bg-black/30 z-20 md:hidden"
-                aria-hidden="true"
-            ></div>
-        )}
-
-        <aside className={`fixed top-0 left-0 h-full z-30 transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'}`}>
+    <div className="flex h-screen overflow-hidden">
+        <div className={`
+            fixed top-0 left-0 h-full z-30 transition-transform transform 
+            ${isSidebarVisible ? 'translate-x-0' : '-translate-x-full'}
+            md:relative md:translate-x-0 md:z-auto
+        `}>
             <Sidebar
-            chats={filteredAndSortedChats}
-            activeChatId={activeChatId}
-            onNewChat={handleNewChat}
-            onSelectChat={handleSelectChat}
-            onUpdateChatTitle={handleUpdateChatTitle}
-            onDeleteChat={handleDeleteChat}
-            onTogglePinChat={handleTogglePinChat}
-            isNewChatDisabled={chats.length === 0}
-            userProfile={userProfile}
-            onOpenProfile={() => setIsProfileModalOpen(true)}
+                chats={sortedChats}
+                activeChatId={activeChatId}
+                onNewChat={handleNewChat}
+                onSelectChat={handleSelectChat}
+                onUpdateChatTitle={handleUpdateChatTitle}
+                onDeleteChat={handleDeleteChat}
+                onTogglePinChat={handleTogglePinChat}
+                isNewChatDisabled={isLoading && !activeChatId}
+                userProfile={userProfile}
+                onOpenProfile={() => setIsProfileModalOpen(true)}
+                sortOrder={sortOrder}
+                onSortOrderChange={setSortOrder}
             />
-        </aside>
+        </div>
+        {isSidebarVisible && <div onClick={() => setIsSidebarVisible(false)} className="fixed inset-0 bg-black/50 z-20 md:hidden" />}
 
-        <main className="flex-1 flex flex-col h-screen overflow-hidden">
+        <div className="flex-1 flex flex-col min-w-0">
             <Header
-            isGenZMode={isGenZMode}
-            onToggleGenZMode={() => setIsGenZMode(prev => !prev)}
-            activeChatTitle={activeChat?.title || ''}
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            activeChatId={activeChatId}
-            onUpdateChatTitle={handleUpdateChatTitle}
-            onShareNative={handleShareNative}
-            onCopyToClipboard={handleCopyToClipboard}
-            onDownloadAsTxt={handleDownloadAsTxt}
-            onToggleSidebar={() => setIsSidebarVisible(prev => !prev)}
-            chatSummary={chatSummary}
-            onGenerateSummary={handleGenerateSummary}
+                isGenZMode={isGenZMode}
+                onToggleGenZMode={() => setIsGenZMode(prev => !prev)}
+                activeChatTitle={activeChat?.title || 'ChatBae'}
+                searchTerm={searchTerm}
+                onSearchChange={setSearchTerm}
+                activeChatId={activeChatId}
+                onShareNative={handleShareNative}
+                onCopyToClipboard={handleCopyToClipboard}
+                onDownloadAsTxt={handleDownloadAsTxt}
+                onToggleSidebar={() => setIsSidebarVisible(prev => !prev)}
+                chatSummary={chatSummary}
+                onGenerateSummary={handleGenerateSummary}
             />
-            <div className="flex-1 overflow-y-auto">
-                <ChatWindow 
-                    chat={activeChat}
+            <main className="flex-1 overflow-y-auto">
+                <ChatWindow
+                    chat={activeChat || null}
                     isLoading={isLoading}
                     onSendMessage={handleSendMessage}
                     onEditMessage={handleEditMessage}
                     isGenZMode={isGenZMode}
                     userProfile={userProfile}
                 />
-            </div>
-        </main>
-
-        {toastMessage && <Toast message={toastMessage} />}
+            </main>
         </div>
         
-        {isProfileModalOpen && (
-            <ProfileModal
-                isOpen={isProfileModalOpen}
-                onClose={() => setIsProfileModalOpen(false)}
-                currentUserProfile={userProfile}
-                onSave={handleUpdateProfile}
-            />
-        )}
-    </>
+        <ProfileModal 
+          isOpen={isProfileModalOpen}
+          currentUserProfile={userProfile}
+          onSave={handleSaveProfile}
+        />
+
+        {toastMessage && <Toast message={toastMessage} />}
+    </div>
   );
 };
 

@@ -4,7 +4,6 @@ import {
     LogoIcon, 
     ShareIcon, 
     EditIcon, 
-    CheckIcon, 
     CloseIcon, 
     QuestionMarkCircleIcon,
     NewChatIcon,
@@ -127,7 +126,6 @@ interface HeaderProps {
   searchTerm: string;
   onSearchChange: (term: string) => void;
   activeChatId: string | null;
-  onUpdateChatTitle: (id: string, newTitle: string) => void;
   onShareNative: () => void;
   onCopyToClipboard: () => void;
   onDownloadAsTxt: () => void;
@@ -143,7 +141,6 @@ export const Header: React.FC<HeaderProps> = ({
     searchTerm, 
     onSearchChange, 
     activeChatId, 
-    onUpdateChatTitle,
     onShareNative,
     onCopyToClipboard,
     onDownloadAsTxt,
@@ -151,16 +148,9 @@ export const Header: React.FC<HeaderProps> = ({
     chatSummary,
     onGenerateSummary,
 }) => {
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [editedTitle, setEditedTitle] = useState(activeChatTitle);
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
   const shareMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setEditedTitle(activeChatTitle);
-    setIsEditingTitle(false);
-  }, [activeChatTitle, activeChatId]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -171,18 +161,6 @@ export const Header: React.FC<HeaderProps> = ({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleSaveTitle = () => {
-    if (activeChatId && editedTitle.trim()) {
-        onUpdateChatTitle(activeChatId, editedTitle.trim());
-    }
-    setIsEditingTitle(false);
-  }
-
-  const handleCancelEdit = () => {
-    setEditedTitle(activeChatTitle);
-    setIsEditingTitle(false);
-  }
 
   const handleShareMenuAction = (action: () => void) => {
     action();
@@ -216,51 +194,17 @@ export const Header: React.FC<HeaderProps> = ({
                 </h1>
             </div>
             <div className="flex items-center gap-2 group min-w-0">
-                {isEditingTitle ? (
-                <input
-                    type="text"
-                    value={editedTitle}
-                    onChange={(e) => setEditedTitle(e.target.value)}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter') handleSaveTitle();
-                        if (e.key === 'Escape') handleCancelEdit();
-                    }}
-                    className="bg-gray-700 text-lg font-semibold text-gray-200 rounded px-2 py-0.5 focus:outline-none focus:ring-2 focus:ring-pink-500 w-full"
-                    autoFocus
-                />
-                ) : (
                 <h2 className="text-lg font-semibold text-gray-300 truncate">{activeChatTitle}</h2>
-                )}
                 {activeChatId && (
-                isEditingTitle ? (
-                    <>
-                    <button onClick={handleSaveTitle} className="p-1 text-green-400 hover:text-green-300 flex-shrink-0">
-                        <CheckIcon className="w-5 h-5" />
-                    </button>
-                    <button onClick={handleCancelEdit} className="p-1 text-red-400 hover:text-red-300 flex-shrink-0">
-                        <CloseIcon className="w-5 h-5" />
-                    </button>
-                    </>
-                ) : (
-                    <>
-                    <button
-                        onClick={() => setIsEditingTitle(true)}
-                        className="p-1 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 hover:bg-gray-700 hover:text-white transition-opacity flex-shrink-0"
-                        aria-label="Edit chat title"
-                    >
-                        <EditIcon className="w-4 h-4" />
-                    </button>
                     <button
                         onClick={onGenerateSummary}
                         disabled={chatSummary.isLoading || !!chatSummary.text}
                         className="p-1 rounded-full text-gray-500 hover:bg-gray-700 hover:text-white transition-opacity flex-shrink-0 disabled:opacity-50 disabled:cursor-not-allowed group-hover:opacity-100"
-                        aria-label="Generate chat summary"
-                        title="Generate chat summary"
+                        aria-label="Get a quick summary of this chat"
+                        title="Get a quick summary of this chat"
                     >
                         <SparklesIcon className="w-4 h-4" />
                     </button>
-                    </>
-                )
                 )}
             </div>
             </div>
@@ -310,8 +254,8 @@ export const Header: React.FC<HeaderProps> = ({
                 )}
             </div>
 
-            <div className="flex items-center space-x-4">
-                <span className={`font-semibold transition-colors whitespace-nowrap ${isGenZMode ? 'text-pink-400' : 'text-gray-400'}`}>
+            <div className="flex items-center gap-2 sm:gap-4">
+                <span className={`font-semibold transition-colors whitespace-nowrap hidden sm:inline ${isGenZMode ? 'text-pink-400' : 'text-gray-400'}`}>
                 Gen Z Mode
                 </span>
                 <button
@@ -333,11 +277,17 @@ export const Header: React.FC<HeaderProps> = ({
           <div className="px-4 pb-3">
             <div className="pl-[5.5rem] sm:pl-[12.5rem]">
               {chatSummary.isLoading ? (
-                <p className="text-sm text-gray-400 italic">Generating summary...</p>
+                <p className="text-sm text-gray-400 italic flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4 text-pink-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Generating summary...</span>
+                </p>
               ) : (
-                <p className="text-sm text-gray-300 bg-gray-800/50 p-2 rounded-md border border-gray-700/50">
-                  <span className="font-semibold text-pink-400 mr-1.5">Summary:</span> 
-                  {chatSummary.text}
+                <p className="text-sm text-gray-300 bg-gray-800/50 p-2 rounded-md border border-gray-700/50 flex items-start gap-2">
+                  <SparklesIcon className="w-4 h-4 text-pink-400 flex-shrink-0 mt-0.5" />
+                  <span>{chatSummary.text}</span>
                 </p>
               )}
             </div>

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import type { UserProfile } from '../types';
 import { CloseIcon, UserAvatar, userAvatarMap } from './Icons';
 
 interface ProfileModalProps {
   isOpen: boolean;
-  onClose: () => void;
   currentUserProfile: UserProfile;
   onSave: (newProfile: UserProfile) => void;
 }
 
-export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, currentUserProfile, onSave }) => {
+export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserProfile, onSave }) => {
   const [name, setName] = useState(currentUserProfile.name);
   const [selectedIconId, setSelectedIconId] = useState(currentUserProfile.iconId);
 
@@ -20,18 +19,32 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, cur
     }
   }, [isOpen, currentUserProfile]);
 
+  const handleSave = useCallback(() => {
+    onSave({ name: name.trim() || 'You', iconId: selectedIconId });
+  }, [name, selectedIconId, onSave]);
+  
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleSave();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, handleSave]);
+
   if (!isOpen) {
     return null;
   }
 
-  const handleSave = () => {
-    onSave({ name: name.trim() || 'You', iconId: selectedIconId });
-  };
-  
   return (
     <div 
         className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-        onClick={onClose}
+        onClick={handleSave}
         aria-modal="true"
         role="dialog"
     >
@@ -42,7 +55,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, cur
         <header className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
           <h3 className="text-xl font-bold text-white">Edit Your Profile</h3>
           <button
-            onClick={onClose}
+            onClick={handleSave}
             className="p-1 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
             aria-label="Close"
           >
@@ -67,38 +80,24 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose, cur
                 <label className="block text-sm font-medium text-gray-300 mb-2">
                     Choose Your Avatar
                 </label>
-                <div className="grid grid-cols-5 gap-4">
+                <div className="grid grid-cols-6 gap-3">
                     {Object.keys(userAvatarMap).map(iconId => (
                         <button
                             key={iconId}
                             onClick={() => setSelectedIconId(iconId)}
-                            className={`p-2 rounded-full transition-all duration-200 ${
+                            className={`p-2 rounded-full transition-all duration-200 flex items-center justify-center ${
                                 selectedIconId === iconId 
-                                ? 'bg-pink-600 ring-2 ring-pink-400 ring-offset-2 ring-offset-gray-800' 
+                                ? 'bg-pink-600/50 ring-2 ring-pink-400 ring-offset-2 ring-offset-gray-800' 
                                 : 'bg-gray-700 hover:bg-gray-600'
                             }`}
                             aria-label={`Select avatar ${iconId}`}
                         >
-                            <UserAvatar iconId={iconId} className="w-8 h-8 text-white" />
+                            <UserAvatar iconId={iconId} className="w-10 h-10" />
                         </button>
                     ))}
                 </div>
             </div>
         </main>
-        <footer className="flex justify-end items-center gap-3 p-4 bg-gray-800/50 border-t border-gray-700">
-            <button 
-                onClick={onClose}
-                className="px-4 py-2 text-sm font-semibold text-gray-300 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
-                Cancel
-            </button>
-            <button
-                onClick={handleSave}
-                className="px-4 py-2 text-sm font-semibold text-white bg-pink-600 hover:bg-pink-700 rounded-lg transition-colors"
-            >
-                Save Changes
-            </button>
-        </footer>
       </div>
     </div>
   );

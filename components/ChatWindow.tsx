@@ -89,7 +89,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onPromptClick, isGenZMode
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendMessage, onEditMessage, isGenZMode, userProfile }) => {
   const [input, setInput] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
   const textBeforeRecordingRef = useRef('');
@@ -140,7 +140,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
   }, [chat?.messages, isLoading]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -171,7 +173,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
 
   return (
     <div className="flex flex-col h-full bg-gray-900">
-      <div className="flex-grow overflow-y-auto p-6 space-y-6">
+      <div ref={scrollContainerRef} className="flex-grow overflow-y-auto p-6 space-y-6 chat-scroll-container">
         {chat ? (
           <>
             {chat.messages.map((msg, index) => (
@@ -190,7 +192,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
                 userProfile={userProfile}
               />
             ))}
-            <div ref={messagesEndRef} />
           </>
         ) : (
           <WelcomeScreen onPromptClick={handlePromptClick} isGenZMode={isGenZMode} />

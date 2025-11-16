@@ -18,46 +18,89 @@ export const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-const UserAvatar1: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+const AvatarMysticOrb: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <defs>
+            <radialGradient id="orb-gradient" cx="50%" cy="50%" r="50%" fx="25%" fy="25%">
+                <stop offset="0%" stopColor="#fbcfe8" />
+                <stop offset="100%" stopColor="#a78bfa" />
+            </radialGradient>
+        </defs>
+        <circle cx="20" cy="20" r="18" fill="url(#orb-gradient)" />
+        <circle cx="20" cy="20" r="12" fill="#d1d5db" opacity="0.2" />
+        <path d="M16 14.5L14.5 13L13 14.5L14.5 16L16 14.5Z" fill="#fff" opacity="0.8" />
+        <path d="M27 24.5L25.5 23L24 24.5L25.5 26L27 24.5Z" fill="#fff" opacity="0.8" />
+        <path d="M13 27L11.5 25.5L10 27L11.5 28.5L13 27Z" fill="#fff" opacity="0.5" />
     </svg>
 );
 
-const UserAvatar2: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2a5 5 0 00-5 5v2a5 5 0 0010 0V7a5 5 0 00-5-5zM7 14a4 4 0 00-4 4v2a2 2 0 002 2h10a2 2 0 002-2v-2a4 4 0 00-4-4H7z"/>
+const AvatarWinkingHeart: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <circle cx="20" cy="20" r="18" fill="#4b5563" />
+        <path d="M26 18C26 19.1046 25.1046 20 24 20C22.8954 20 22 19.1046 22 18C22 16.8954 22.8954 16 24 16C25.1046 16 26 16.8954 26 18Z" fill="#fff" />
+        <path d="M15 16H19V18H15V16Z" fill="#fff" />
+        <path d="M14 24.08C16.14 26.22 18.86 26.22 21 24.08" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        <path d="M30.5 13.5C31.25 12 30 11 29 11.5C28 12 28.5 14 30.5 13.5Z" fill="#f472b6"/>
     </svg>
 );
 
-const UserAvatar3: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+const AvatarCoolCat: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <circle cx="20" cy="20" r="18" fill="#fde68a" />
+        <path d="M13 13L10 10" stroke="#a16207" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M27 13L30 10" stroke="#a16207" strokeWidth="2" strokeLinecap="round"/>
+        <path d="M11 21C11 18.2386 13.2386 16 16 16H24C26.7614 16 29 18.2386 29 21V22H11V21Z" fill="#1f2937" />
+        <path d="M18 25C18 24.4477 18.4477 24 19 24H21C21.5523 24 22 24.4477 22 25V26H18V25Z" fill="#f0abfc" />
     </svg>
 );
 
-const UserAvatar4: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-3-3 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+const AvatarLofiBot: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <circle cx="20" cy="20" r="18" fill="#374151" />
+        <rect x="10" y="14" width="20" height="12" rx="2" fill="#d1d5db" />
+        <rect x="13" y="18" width="14" height="4" fill="#111827" />
+        <rect x="14" y="19" width="4" height="2" fill="#a78bfa" />
+        <rect x="22" y="19" width="4" height="2" fill="#a78bfa" />
+        <rect x="8" y="16" width="4" height="8" rx="2" fill="#9ca3af" />
+        <rect x="28" y="16" width="4" height="8" rx="2" fill="#9ca3af" />
     </svg>
 );
 
-const UserAvatar5: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-        <path d="M12 2c-4.97 0-9 4.03-9 9 0 4.17 2.84 7.67 6.69 8.69.5.09.68-.21.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.28.1-2.65 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.33 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .26.18.57.69.48C19.16 19.67 22 16.17 22 11.01c0-4.97-4.03-9-9-9z"/>
+const AvatarGeometricFox: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <circle cx="20" cy="20" r="18" fill="#f97316" />
+        <path d="M20 10L10 20L20 30L30 20L20 10Z" fill="#ffedd5" />
+        <path d="M20 10L10 20H30L20 10Z" fill="#fff" />
+        <path d="M15 20L20 22L25 20L20 26L15 20Z" fill="#1e293b" />
+    </svg>
+);
+
+const AvatarCosmicDiamond: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" className={className} fill="none">
+        <defs>
+            <linearGradient id="diamond-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#6366f1" />
+                <stop offset="100%" stopColor="#d946ef" />
+            </linearGradient>
+        </defs>
+        <path d="M20 4L36 16V24L20 36L4 24V16L20 4Z" fill="#1f2937" />
+        <path d="M20 6.5L33.5 16V24L20 33.5L6.5 24V16L20 6.5Z" fill="url(#diamond-gradient)" />
+        <path d="M20 6.5L12 16H28L20 6.5Z" fill="#fff" fillOpacity="0.5" />
+        <path d="M20 33.5L4 16H36L20 33.5Z" fill="#000" fillOpacity="0.2" />
     </svg>
 );
 
 export const userAvatarMap: Record<string, React.FC<{ className?: string }>> = {
-    'user1': UserAvatar1,
-    'user2': UserAvatar2,
-    'user3': UserAvatar3,
-    'user4': UserAvatar4,
-    'user5': UserAvatar5,
+    'mystic_orb': AvatarMysticOrb,
+    'winking_heart': AvatarWinkingHeart,
+    'cool_cat': AvatarCoolCat,
+    'lofi_bot': AvatarLofiBot,
+    'geometric_fox': AvatarGeometricFox,
+    'cosmic_diamond': AvatarCosmicDiamond,
 };
 
 export const UserAvatar: React.FC<{ iconId: string; className?: string }> = ({ iconId, className }) => {
-    const AvatarComponent = userAvatarMap[iconId] || UserAvatar1; // Default to UserAvatar1
+    const AvatarComponent = userAvatarMap[iconId] || AvatarMysticOrb;
     return <AvatarComponent className={className} />;
 };
 
