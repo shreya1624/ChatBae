@@ -410,7 +410,7 @@ const App: React.FC = () => {
         <ProfileModal 
           isOpen={isProfileModalOpen}
           currentUserProfile={userProfile}
-          onSave={handleSaveProfile}
+          onClose={handleSaveProfile}
         />
 
         {toastMessage && <Toast message={toastMessage} />}

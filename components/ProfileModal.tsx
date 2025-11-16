@@ -5,10 +5,10 @@ import { CloseIcon, UserAvatar, userAvatarMap } from './Icons';
 interface ProfileModalProps {
   isOpen: boolean;
   currentUserProfile: UserProfile;
-  onSave: (newProfile: UserProfile) => void;
+  onClose: (newProfile: UserProfile) => void;
 }
 
-export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserProfile, onSave }) => {
+export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserProfile, onClose }) => {
   const [name, setName] = useState(currentUserProfile.name);
   const [selectedIconId, setSelectedIconId] = useState(currentUserProfile.iconId);
 
@@ -19,14 +19,14 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserP
     }
   }, [isOpen, currentUserProfile]);
 
-  const handleSave = useCallback(() => {
-    onSave({ name: name.trim() || 'You', iconId: selectedIconId });
-  }, [name, selectedIconId, onSave]);
+  const handleCloseAndSave = useCallback(() => {
+    onClose({ name: name.trim() || 'You', iconId: selectedIconId });
+  }, [name, selectedIconId, onClose]);
   
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        handleSave();
+        handleCloseAndSave();
       }
     };
     if (isOpen) {
@@ -35,7 +35,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserP
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, handleSave]);
+  }, [isOpen, handleCloseAndSave]);
 
   if (!isOpen) {
     return null;
@@ -44,7 +44,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserP
   return (
     <div 
         className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
-        onClick={handleSave}
+        onClick={handleCloseAndSave}
         aria-modal="true"
         role="dialog"
     >
@@ -55,7 +55,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, currentUserP
         <header className="flex items-center justify-between p-4 border-b border-gray-700 flex-shrink-0">
           <h3 className="text-xl font-bold text-white">Edit Your Profile</h3>
           <button
-            onClick={handleSave}
+            onClick={handleCloseAndSave}
             className="p-1 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white transition-colors"
             aria-label="Close"
           >
