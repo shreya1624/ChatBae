@@ -12,6 +12,55 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
+      /* Custom scrollbar for webkit browsers */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #4b5563; /* bg-gray-600 */
+        border-radius: 3px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #6b7280; /* bg-gray-500 */
+      }
+      
+      /* Bouncing loader for typing indicator */
+      @keyframes bounce {
+        0%, 80%, 100% { transform: scale(0); }
+        40% { transform: scale(1.0); }
+      }
+      .dot-bounce div {
+        animation: bounce 1.4s infinite ease-in-out both;
+      }
+      .dot-bounce .dot-1 { animation-delay: -0.32s; }
+      .dot-bounce .dot-2 { animation-delay: -0.16s; }
+      .dot-bounce .dot-3 { /* no delay */ }
+
+      /* New Logo Animations */
+      @keyframes heartbeat {
+        0% { transform: scale(1); }
+        10% { transform: scale(1.15); }
+        20% { transform: scale(1); }
+        30% { transform: scale(1.15); }
+        40% { transform: scale(1); }
+        100% { transform: scale(1); }
+      }
+      .heart-container {
+        animation: heartbeat 2s infinite ease-in-out;
+        transform-origin: center;
+      }
+
+      @keyframes robot-float {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-1.5px); }
+        100% { transform: translateY(0px); }
+      }
+      .robot-body {
+          animation: robot-float 3s infinite ease-in-out;
+      }
     </style>
   <script type="importmap">
 {

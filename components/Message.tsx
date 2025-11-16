@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import type { Message } from '../types';
-import { UserIcon, BotIcon, EditIcon } from './Icons';
+import type { Message, UserProfile } from '../types';
+import { UserAvatar, BotIcon, EditIcon } from './Icons';
 
 interface MessageProps {
   message: Message;
@@ -9,9 +9,44 @@ interface MessageProps {
   onStartEditing: (index: number) => void;
   onSaveEdit: (newContent: string) => void;
   onCancelEditing: () => void;
+  isLoading?: boolean;
+  userProfile: UserProfile;
 }
 
-export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isEditing, onStartEditing, onSaveEdit, onCancelEditing }) => {
+const formatTimestamp = (timestamp: number): string => {
+  const messageDate = new Date(timestamp);
+  const now = new Date();
+
+  const timeString = messageDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+  // Today
+  if (messageDate.toDateString() === now.toDateString()) {
+    return `Today at ${timeString}`;
+  }
+
+  // Yesterday
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  if (messageDate.toDateString() === yesterday.toDateString()) {
+    return `Yesterday at ${timeString}`;
+  }
+
+  // This week (within last 7 days)
+  const diffTime = Math.abs(now.getTime() - messageDate.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays <= 7) {
+     return `${messageDate.toLocaleDateString('en-US', { weekday: 'long' })} at ${timeString}`;
+  }
+
+  // Older than a week
+  return messageDate.toLocaleDateString('en-US');
+};
+
+export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isEditing, onStartEditing, onSaveEdit, onCancelEditing, isLoading, userProfile }) => {
   const isUser = message.role === 'user';
   const [editedContent, setEditedContent] = useState(message.content);
 
@@ -43,7 +78,7 @@ export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isE
     return (
       <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-800 w-full">
         <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-blue-500">
-          <UserIcon className="w-5 h-5 text-white" />
+          <UserAvatar iconId={userProfile.iconId} className="w-5 h-5 text-white" />
         </div>
         <div className="flex-grow">
           <textarea
@@ -66,26 +101,54 @@ export const ChatMessage: React.FC<MessageProps> = ({ message, messageIndex, isE
       </div>
     );
   }
+  
+  if (message.role === 'model' && isLoading && !message.content.trim()) {
+    return (
+      <div className="flex items-start gap-4 p-4 rounded-lg bg-gray-700/50">
+        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-pink-600">
+          <BotIcon className="w-5 h-5 text-white" />
+        </div>
+        <div className="flex items-center gap-2 pt-1.5">
+            <span className="text-gray-400 italic">ChatBae is typing</span>
+            <div className="flex items-center space-x-1 dot-bounce">
+                <div className="w-2 h-2 bg-pink-400 rounded-full dot-1"></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full dot-2"></div>
+                <div className="w-2 h-2 bg-pink-400 rounded-full dot-3"></div>
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`group flex items-start gap-4 p-4 rounded-lg ${isUser ? 'bg-gray-800' : 'bg-gray-700/50'}`}>
       <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${isUser ? 'bg-blue-500' : 'bg-pink-600'}`}>
-        {isUser ? <UserIcon className="w-5 h-5 text-white" /> : <BotIcon className="w-5 h-5 text-white" />}
+        {isUser ? <UserAvatar iconId={userProfile.iconId} className="w-5 h-5 text-white" /> : <BotIcon className="w-5 h-5 text-white" />}
       </div>
-      <div className="flex-grow pt-1 whitespace-pre-wrap text-gray-200 min-w-0">
-        {message.content}
-      </div>
-      {isUser && (
-        <div className="flex-shrink-0">
-            <button
-                onClick={() => onStartEditing(messageIndex)}
-                className="p-1 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 hover:bg-gray-700 hover:text-white transition-opacity"
-                aria-label="Edit message"
-            >
-                <EditIcon className="w-4 h-4" />
-            </button>
+      <div className="flex-grow min-w-0">
+        <div className="font-semibold text-gray-100 mb-1">
+            {isUser ? userProfile.name : "ChatBae"}
         </div>
-      )}
+        <div className="whitespace-pre-wrap text-gray-200">
+          {message.content}
+        </div>
+        <div className="flex items-center justify-between mt-2 h-5">
+            {message.timestamp && (
+                <time dateTime={new Date(message.timestamp).toISOString()} className="text-xs text-gray-400">
+                    {formatTimestamp(message.timestamp)}
+                </time>
+            )}
+            {isUser && (
+                <button
+                    onClick={() => onStartEditing(messageIndex)}
+                    className="p-1 rounded-full text-gray-500 opacity-0 group-hover:opacity-100 hover:bg-gray-700 hover:text-white transition-opacity"
+                    aria-label="Edit message"
+                >
+                    <EditIcon className="w-4 h-4" />
+                </button>
+            )}
+        </div>
+      </div>
     </div>
   );
 };

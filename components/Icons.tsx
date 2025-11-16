@@ -18,11 +18,48 @@ export const SendIcon: React.FC<{ className?: string }> = ({ className }) => (
   </svg>
 );
 
-export const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
-  </svg>
+const UserAvatar1: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path fillRule="evenodd" d="M18.685 19.097A9.723 9.723 0 0021.75 12c0-5.385-4.365-9.75-9.75-9.75S2.25 6.615 2.25 12a9.723 9.723 0 003.065 7.097A9.716 9.716 0 0012 21.75a9.716 9.716 0 006.685-2.653zm-12.54-1.285A7.486 7.486 0 0112 15a7.486 7.486 0 015.855 2.812A8.224 8.224 0 0112 20.25a8.224 8.224 0 01-5.855-2.438zM15.75 9a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" clipRule="evenodd" />
+    </svg>
 );
+
+const UserAvatar2: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2a5 5 0 00-5 5v2a5 5 0 0010 0V7a5 5 0 00-5-5zM7 14a4 4 0 00-4 4v2a2 2 0 002 2h10a2 2 0 002-2v-2a4 4 0 00-4-4H7z"/>
+    </svg>
+);
+
+const UserAvatar3: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+    </svg>
+);
+
+const UserAvatar4: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-3-3 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+    </svg>
+);
+
+const UserAvatar5: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2c-4.97 0-9 4.03-9 9 0 4.17 2.84 7.67 6.69 8.69.5.09.68-.21.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.15-1.11-1.46-1.11-1.46-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.89 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.1.39-1.99 1.03-2.69-.1-.25-.45-1.28.1-2.65 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.33 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .26.18.57.69.48C19.16 19.67 22 16.17 22 11.01c0-4.97-4.03-9-9-9z"/>
+    </svg>
+);
+
+export const userAvatarMap: Record<string, React.FC<{ className?: string }>> = {
+    'user1': UserAvatar1,
+    'user2': UserAvatar2,
+    'user3': UserAvatar3,
+    'user4': UserAvatar4,
+    'user5': UserAvatar5,
+};
+
+export const UserAvatar: React.FC<{ iconId: string; className?: string }> = ({ iconId, className }) => {
+    const AvatarComponent = userAvatarMap[iconId] || UserAvatar1; // Default to UserAvatar1
+    return <AvatarComponent className={className} />;
+};
 
 export const BotIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
@@ -31,15 +68,42 @@ export const BotIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="url(#logo-gradient)" className={className}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className={className}>
         <defs>
             <linearGradient id="logo-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" stopColor="#f472b6" /> 
                 <stop offset="100%" stopColor="#a78bfa" />
             </linearGradient>
         </defs>
-        <path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2.43 12.04c-1.34.87-3.13.44-4.14-1.03-1.02-1.47-.7-3.32.63-4.18 1.34-.87 3.13-.44 4.14 1.03 1.01 1.47.7 3.32-.64 4.18zM12 14.8c-.4.4-.9.6-1.4.6s-1-.2-1.4-.6C9.8 14 9 12.8 9 11.5c0-2 2-3.5 3-3.5s3 1.5 3 3.5c0 1.3-.8 2.5-1.6 3.3z" />
-        <path d="M11.57 12.04c1.34.87 3.13.44 4.14-1.03 1.02-1.47.7-3.32-.63-4.18-1.34-.87-3.13-.44-4.14 1.03-1.01 1.47-.7 3.32.63 4.18z"/>
+        
+        <g className="robot-body">
+            {/* Legs */}
+            <rect x="8.5" y="18" width="2" height="4" rx="1" fill="#9ca3af" />
+            <rect x="13.5" y="18" width="2" height="4" rx="1" fill="#9ca3af" />
+            {/* Body */}
+            <rect x="7" y="10" width="10" height="8" rx="2" fill="#d1d5db" />
+            {/* Head */}
+            <rect x="8" y="4" width="8" height="6" rx="2" fill="#d1d5db" />
+             {/* Antenna */}
+            <line x1="12" y1="4" x2="12" y2="2" stroke="#9ca3af" strokeWidth="1" />
+            <circle cx="12" cy="1.5" r="1" fill="#f472b6" />
+            {/* Eyes */}
+            <circle cx="10.5" cy="7" r="0.75" fill="#4b5563" />
+            <circle cx="13.5" cy="7" r="0.75" fill="#4b5563" />
+            {/* Arms */}
+            <path d="M7 13 C 5.5 13, 5 14, 5.5 15.5" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+            <path d="M17 13 C 18.5 13, 19 14, 18.5 15.5" stroke="#9ca3af" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+        </g>
+        
+        {/* The beating heart */}
+        <g className="heart-container" style={{ transformOrigin: '12px 15px' }}>
+            <path 
+                fill="url(#logo-gradient)" 
+                stroke="#fff"
+                strokeWidth="0.3"
+                d="M12 15.2c-1.5-1.5-3.5-1.1-3.5 0.8 0 1.5 2.5 3 3.5 3.5 1 0 3.5-2 3.5-3.5 0-1.9-2-2.3-3.5-0.8z"
+            />
+        </g>
     </svg>
 );
 
@@ -76,5 +140,53 @@ export const CloseIcon: React.FC<{ className?: string }> = ({ className }) => (
 export const MicrophoneIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+    </svg>
+);
+
+export const ThreeDotsIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M5 12a1 1 0 110-2 1 1 0 010 2zm7 0a1 1 0 110-2 1 1 0 010 2zm7 0a1 1 0 110-2 1 1 0 010 2z" />
+    </svg>
+);
+
+export const PinIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path fillRule="evenodd" d="M10.43 2.25a.75.75 0 011.14 0l2.25 2.25c.14.14.22.33.22.53v.92c0 .98.83 1.75 1.83 1.75h1.33c.33 0 .63.16.81.42a2.97 2.97 0 01-1.4 4.88c-.3.1-.5.35-.5.66v2.1c0 .41-.34.75-.75.75H8.25a.75.75 0 01-.75-.75v-2.1c0-.31-.2-.56-.5-.66a2.97 2.97 0 01-1.4-4.88.99.99 0 01.81-.42h1.33c1 0 1.83-.77 1.83-1.75v-.92c0-.2.08-.39.22-.53l2.25-2.25zM10.19 16.5a.75.75 0 00-1.43.44l.19 1.06a.75.75 0 001.43-.44l-.19-1.06zM15.25 16.5a.75.75 0 00-1.43.44l.19 1.06a.75.75 0 001.43-.44l-.19-1.06z" clipRule="evenodd" />
+    </svg>
+);
+
+export const TrashIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+);
+
+export const QuestionMarkCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
+
+export const CopyIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+    </svg>
+);
+
+export const DownloadIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+    </svg>
+);
+
+export const MenuIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+);
+
+export const SparklesIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.562L16.25 22.5l-.648-1.938a3.375 3.375 0 00-2.662-2.662l-1.938-.648 1.938-.648a3.375 3.375 0 002.662-2.662l.648-1.938.648 1.938a3.375 3.375 0 002.662 2.662l1.938.648-1.938.648a3.375 3.375 0 00-2.662 2.662z" />
     </svg>
 );

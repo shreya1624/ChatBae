@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Content, GenerateContentResponse } from "@google/genai";
 import type { Message } from '../types';
 
@@ -21,7 +20,7 @@ const mapMessagesToContent = (messages: Message[]): Content[] => {
     }));
 }
 
-export const getChatResponse = async (history: Message[], newMessage: string, isGenZ: boolean): Promise<GenerateContentResponse> => {
+export const getChatResponseStream = async (history: Message[], newMessage: string, isGenZ: boolean) => {
     const chat = ai.chats.create({
         model: model,
         history: mapMessagesToContent(history),
@@ -30,21 +29,62 @@ export const getChatResponse = async (history: Message[], newMessage: string, is
         }
     });
 
-    const response = await chat.sendMessage({ message: newMessage });
-    return response;
+    const stream = await chat.sendMessageStream({ message: newMessage });
+    return stream;
 };
 
-export const getTitleForChat = async (firstMessage: string): Promise<string> => {
-    const titlePrompt = `Generate a very short, concise title (3-5 words max) for a conversation that starts with this message: "${firstMessage}". Just return the title itself, without any prefixes like "Title:" or quotation marks.`;
+const generateTranscriptForSummary = (messages: Message[]): string => {
+    const messageCount = messages.length;
+    if (messageCount === 0) return "";
+
+    // Use a selection of messages to create a summary for the prompt
+    const relevantMessages = messageCount > 8
+        ? [...messages.slice(0, 4), ...messages.slice(-4)]
+        : messages;
+
+    return relevantMessages.map(m => `${m.role === 'user' ? 'User' : 'Coach'}: ${m.content}`).join('\n');
+}
+
+export const getTitleForChat = async (messages: Message[]): Promise<string> => {
+    if (!messages || messages.length === 0) {
+        return "New Chat";
+    }
+
+    const conversationSummary = generateTranscriptForSummary(messages);
+
+    const titlePrompt = `Based on the following conversation, generate a very short, concise title (3-5 words max). The title should capture the main topic. Return only the title text, without any prefixes or quotation marks.\n\n---\n\n${conversationSummary}`;
     
     try {
         const response = await ai.models.generateContent({
             model: model,
             contents: titlePrompt
         });
-        return response.text.trim();
+        const newTitle = response.text.trim().replace(/^["']|["']$/g, "");
+        return newTitle || "New Chat";
     } catch (error) {
         console.error("Error generating title:", error);
         return "New Chat";
+    }
+}
+
+export const getChatSummary = async (messages: Message[]): Promise<string> => {
+    if (!messages || messages.length < 2) {
+        return "This chat is just getting started!";
+    }
+
+    const conversationTranscript = generateTranscriptForSummary(messages);
+
+    const summaryPrompt = `Analyze the following conversation and provide a very concise, one-sentence summary of what is being discussed. Return only the summary text.\n\n---\n\n${conversationTranscript}`;
+    
+    try {
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: summaryPrompt
+        });
+        const summary = response.text.trim().replace(/^["']|["']$/g, "");
+        return summary || "Unable to generate summary.";
+    } catch (error) {
+        console.error("Error generating summary:", error);
+        return "Unable to generate summary.";
     }
 }

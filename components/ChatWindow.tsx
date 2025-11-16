@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import type { Chat } from '../types';
+import type { Chat, UserProfile } from '../types';
 import { ChatMessage } from './Message';
 import { SendIcon, LogoIcon, BotIcon, MicrophoneIcon } from './Icons';
 
@@ -8,31 +8,63 @@ interface ChatWindowProps {
   isLoading: boolean;
   onSendMessage: (message: string) => void;
   onEditMessage: (messageIndex: number, newContent: string) => void;
+  isGenZMode: boolean;
+  userProfile: UserProfile;
 }
 
-const WelcomeScreen: React.FC<{ onPromptClick: (prompt: string) => void }> = ({ onPromptClick }) => {
+interface WelcomeScreenProps {
+  onPromptClick: (prompt: string) => void;
+  isGenZMode: boolean;
+}
+
+const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onPromptClick, isGenZMode }) => {
   const categoryPrompts = [
     { 
-        title: "First Dates", 
-        prompt: "What are some good first date ideas?",
-        description: "Get ideas and tips for a memorable first impression."
+        title: "Craft Your Profile", 
+        prompt: "Help me write a dating profile bio that stands out.",
+        description: "Get help writing a bio and choosing photos that show off the real you."
     },
     { 
-        title: "Communication", 
-        prompt: "How do I communicate my feelings without being awkward?",
-        description: "Learn to express yourself clearly and confidently."
+        title: "Break the Ice", 
+        prompt: "Give me a unique opening line based on my match's profile.",
+        description: "Move beyond 'hey' with creative conversation starters that get replies."
     },
     { 
-        title: "Breakups", 
-        prompt: "I just went through a breakup, what should I do?",
-        description: "Find support and guidance on how to move forward."
+        title: "Build Your Confidence", 
+        prompt: "How can I overcome my dating anxiety?",
+        description: "Get actionable tips to boost your self-esteem and feel great on dates."
     },
     { 
-        title: "Online Dating", 
-        prompt: "Help me improve my online dating profile.",
-        description: "Craft a bio and choose photos that get you noticed."
+        title: "Navigate Awkward Stuff", 
+        prompt: "How do I bring up the 'what are we?' conversation?",
+        description: "Get scripts and advice for handling those tricky dating talks with ease."
     }
   ];
+
+  const genZCategoryPrompts = [
+    {
+      title: "Profile Glow Up",
+      prompt: "Help me make a bio that's giving main character energy.",
+      description: "Craft a fire bio and pick pics that absolutely ate. No crumbs left."
+    },
+    {
+      title: "Slide into DMs",
+      prompt: "My match is a whole vibe. Cook up an opener with mad rizz.",
+      description: "Ditch the 'hey' and slide in with something that'll get you a reply, no cap."
+    },
+    {
+      title: "Shoot Your Shot",
+      prompt: "I'm in my delulu era over this person. How do I not fumble?",
+      description: "Get the confidence to make a move without getting the ick. Bet."
+    },
+    {
+      title: "Decode the Situationship",
+      prompt: "This situationship is sending me. Is it real or should I dip?",
+      description: "Figure out where you stand and how to talk about it without being cringe."
+    }
+  ];
+
+  const prompts = isGenZMode ? genZCategoryPrompts : categoryPrompts;
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-center p-4">
@@ -40,7 +72,7 @@ const WelcomeScreen: React.FC<{ onPromptClick: (prompt: string) => void }> = ({ 
         <h2 className="text-3xl font-bold text-white mb-2">ChatBae</h2>
         <p className="text-gray-400 mb-8">Your new-age AI dating coach. <br /> Ask me anything, or start with a topic below.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-3xl">
-            {categoryPrompts.map(({ title, prompt, description }) => (
+            {prompts.map(({ title, prompt, description }) => (
                 <button 
                     key={title}
                     onClick={() => onPromptClick(prompt)}
@@ -55,11 +87,12 @@ const WelcomeScreen: React.FC<{ onPromptClick: (prompt: string) => void }> = ({ 
   );
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendMessage, onEditMessage }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendMessage, onEditMessage, isGenZMode, userProfile }) => {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const textBeforeRecordingRef = useRef('');
   const [editingMessageIndex, setEditingMessageIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -80,6 +113,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
     recognition.onerror = (event: any) => {
       console.error("Speech recognition error:", event.error);
       setIsRecording(false);
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = Array.from(event.results)
+        .map((result: any) => result[0])
+        .map((result) => result.transcript)
+        .join('');
+      
+      const baseText = textBeforeRecordingRef.current;
+      const separator = baseText.trim().length > 0 && transcript.length > 0 ? ' ' : '';
+      setInput(baseText + separator + transcript);
     };
 
     recognitionRef.current = recognition;
@@ -120,16 +164,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
     if (isRecording) {
       recognitionRef.current.stop();
     } else {
-      const textBeforeRecording = input;
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = Array.from(event.results)
-          .map((result: any) => result[0])
-          .map((result) => result.transcript)
-          .join('');
-        
-        const separator = textBeforeRecording.trim().length > 0 && transcript.length > 0 ? ' ' : '';
-        setInput(textBeforeRecording + separator + transcript);
-      };
+      textBeforeRecordingRef.current = input;
       recognitionRef.current.start();
     }
   };
@@ -141,7 +176,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
           <>
             {chat.messages.map((msg, index) => (
               <ChatMessage 
-                key={index} 
+                key={msg.timestamp || index} 
                 message={msg}
                 messageIndex={index}
                 isEditing={editingMessageIndex === index}
@@ -151,24 +186,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
                   onEditMessage(index, newContent);
                   setEditingMessageIndex(null);
                 }}
+                isLoading={isLoading && index === chat.messages.length - 1}
+                userProfile={userProfile}
               />
             ))}
-            {isLoading && (
-              <div className="flex items-start gap-4 p-4">
-                 <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-pink-600">
-                    <BotIcon className="w-5 h-5 text-white" />
-                 </div>
-                 <div className="flex items-center space-x-2 pt-2">
-                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse"></div>
-                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse [animation-delay:0.2s]"></div>
-                    <div className="w-2 h-2 bg-pink-400 rounded-full animate-pulse [animation-delay:0.4s]"></div>
-                 </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </>
         ) : (
-          <WelcomeScreen onPromptClick={handlePromptClick} />
+          <WelcomeScreen onPromptClick={handlePromptClick} isGenZMode={isGenZMode} />
         )}
       </div>
       <div className="p-6 bg-gray-900 border-t border-gray-700">
@@ -182,15 +207,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
                     handleSubmit(e);
                 }
             }}
-            placeholder={chat ? "Ask for dating advice..." : "Start a new chat to begin..."}
+            placeholder={isRecording ? "Listening..." : (chat ? "Ask for dating advice..." : "Start a new chat to begin...")}
             rows={1}
             className="w-full bg-gray-800 border border-gray-600 rounded-lg pr-28 pl-4 py-3 text-white placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-pink-500"
-            disabled={!chat || isLoading || editingMessageIndex !== null}
+            disabled={isLoading || editingMessageIndex !== null}
           />
           <button
             type="button"
             onClick={handleToggleRecording}
-            disabled={!chat || isLoading || editingMessageIndex !== null}
+            disabled={isLoading || editingMessageIndex !== null}
             className={`absolute right-16 top-1/2 -translate-y-1/2 p-2 rounded-full hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all ${isRecording ? 'bg-pink-600/50' : ''}`}
             aria-label={isRecording ? 'Stop recording' : 'Start recording'}
             title={isRecording ? 'Stop recording' : 'Start recording'}
@@ -199,7 +224,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ chat, isLoading, onSendM
           </button>
           <button
             type="submit"
-            disabled={!input.trim() || isLoading || !chat || editingMessageIndex !== null}
+            disabled={!input.trim() || isLoading || editingMessageIndex !== null}
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-pink-600 rounded-full text-white hover:bg-pink-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
           >
             <SendIcon className="w-5 h-5 transform -rotate-45" />
