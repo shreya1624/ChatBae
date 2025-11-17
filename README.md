@@ -2,8 +2,6 @@
 
 ChatBae is a modern, AI-powered dating coach designed to act like a supportive friend. It helps users navigate the complexities of modern dating, from crafting the perfect profile bio to breaking the ice and handling tricky conversations. With a special "Gen Z" mode, it offers relatable advice tailored to a younger audience.
 
-![ChatBae Screenshot](https://i.imgur.com/example.png) 
-*(Note: Replace with an actual screenshot of the application)*
 
 ---
 
